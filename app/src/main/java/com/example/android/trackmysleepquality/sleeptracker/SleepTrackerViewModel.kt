@@ -17,14 +17,18 @@
 package com.example.android.trackmysleepquality.sleeptracker
 
 import android.app.Application
+import android.service.autofill.Transformation
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
 import com.example.android.trackmysleepquality.database.SleepDatabaseDao
 import com.example.android.trackmysleepquality.database.SleepNight
 import com.example.android.trackmysleepquality.formatNights
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * ViewModel for SleepTrackerFragment.
@@ -43,6 +47,26 @@ class  SleepTrackerViewModel(
                 formatNights(nights, application.resources)
         }
 
+        private val _navigateToSleepQuality = MutableLiveData<SleepNight?>()
+        val navigateToSleepQuality : LiveData<SleepNight?>
+                get() = _navigateToSleepQuality
+
+//        val startButtonVisible = tonight.map{
+//                null == it
+//        }
+//
+//        val stopButtonVisible = tonight.map{
+//                null != it
+//        }
+//
+//        val clearButtonVisible = tonight.map{
+//                it?.isNotEmpty()
+//        }
+
+        fun doneNavigating(){
+                _navigateToSleepQuality.value = null
+        }
+
         init {
              initializeTonight()
         }
@@ -54,12 +78,14 @@ class  SleepTrackerViewModel(
         }
 
         private suspend fun getTonightFromDatabase(): SleepNight? {
-                var night = database.getTonight()
+                return withContext(Dispatchers.IO) {
+                        var night = database.getTonight()
 
-                if (night?.endTimeMilli != night?.startTimeMilli){
-                        return null
+                        if (night?.endTimeMilli != night?.startTimeMilli) {
+                                null
+                        }
+                        night
                 }
-                return night
         }
 
         fun onStartTracking(){
@@ -70,8 +96,10 @@ class  SleepTrackerViewModel(
                 }
         }
 
-        private suspend fun insert(night: SleepNight){
-                database.insert(night)
+        private suspend fun insert(night: SleepNight) {
+                withContext(Dispatchers.IO) {
+                        database.insert(night)
+                }
         }
 
         fun onStopTracking(){
@@ -79,11 +107,14 @@ class  SleepTrackerViewModel(
                         val oldNight = tonight.value ?: return@launch //is used for specifying which function among several nested ones this statement returns from. In this case we are specifying to return from launch not the lambda
                         oldNight.endTimeMilli = System.currentTimeMillis()
                         update(oldNight)
+                        _navigateToSleepQuality.value = oldNight
                 }
         }
 
-        private suspend fun update(night: SleepNight){
-                database.update(night)
+        private suspend fun update(night: SleepNight) {
+                withContext(Dispatchers.IO) {
+                        database.update(night)
+                }
         }
 
         fun onClear(){
@@ -93,8 +124,10 @@ class  SleepTrackerViewModel(
                 }
         }
 
-        private suspend fun clear(){
-                database.clear()
+        private suspend fun clear() {
+                withContext(Dispatchers.IO) {
+                        database.clear()
+                }
         }
 
 

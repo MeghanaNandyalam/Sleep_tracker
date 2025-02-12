@@ -52,3 +52,4 @@
     </fragment>
 
 </navigation>
+    <!--            passing the sleepNight key, the night id of the current night to the fragment so that we know which night to update-->
