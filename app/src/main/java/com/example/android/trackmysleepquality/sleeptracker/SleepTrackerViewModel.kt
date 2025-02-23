@@ -39,7 +39,7 @@ class  SleepTrackerViewModel(
 
         private var tonight = MutableLiveData<SleepNight?>()
 
-        private val nights = database.getAllNights() //this is a livedata because getAllNights is set to livedata. So whenever the entries in the database changes, the nights variable changes automatically
+        val nights = database.getAllNights() //this is a livedata because getAllNights is set to livedata. So whenever the entries in the database changes, the nights variable changes automatically
         // we also want all the nights in the database when we create a viewModel
         // we defined getAllNights() to return liveData in the DAO
 
